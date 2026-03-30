@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "Pilates Central",
+    "slug": "pilates-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": { "backgroundColor": "#6B3FA0" }
+  }
+}
