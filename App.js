@@ -1,30 +1,25 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text } from 'react-native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import HomeScreen   from './screens/HomeScreen';
-import AlunosScreen from './screens/AlunosScreen';
-import PlanosScreen from './screens/PlanosScreen';
-import PerfilScreen from './screens/PerfilScreen';
+import SplashScreen    from './screens/SplashScreen';
+import TransicaoScreen from './screens/TransicaoScreen';
+import WelcomeScreen   from './screens/WelcomeScreen';
+import UnidadeScreen   from './screens/UnidadeScreen';
+import LoginScreen     from './screens/LoginScreen';
 
-const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Tab.Navigator
-        screenOptions={{ tabBarActiveTintColor: '#6B3FA0', headerShown: false }}
-      >
-        <Tab.Screen name="Home"   component={HomeScreen}
-          options={{ tabBarIcon: () => <Text>🏠</Text> }} />
-        <Tab.Screen name="Alunos" component={AlunosScreen}
-          options={{ tabBarIcon: () => <Text>👥</Text> }} />
-        <Tab.Screen name="Planos" component={PlanosScreen}
-          options={{ tabBarIcon: () => <Text>💳</Text> }} />
-        <Tab.Screen name="Perfil" component={PerfilScreen}
-          options={{ tabBarIcon: () => <Text>👤</Text> }} />
-      </Tab.Navigator>
+      <Stack.Navigator screenOptions={{ headerShown: false, animation: 'fade' }}>
+        <Stack.Screen name="Splash"    component={SplashScreen} />
+        <Stack.Screen name="Transicao" component={TransicaoScreen} />
+        <Stack.Screen name="Welcome"   component={WelcomeScreen} />
+        <Stack.Screen name="Unidade"   component={UnidadeScreen} />
+        <Stack.Screen name="Login"     component={LoginScreen} />
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }
