@@ -29,7 +29,13 @@ export default function WelcomeScreen({ navigation }) {
           </Text>
         </View>
 
-        <TouchableOpacity style={styles.checkRow} onPress={() => setAceitou(!aceitou)}>
+        <TouchableOpacity
+          style={styles.checkRow}
+          onPress={() => setAceitou(v => !v)}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: aceitou }}
+          accessibilityLabel="Li e aceito os termos de uso"
+        >
           <View style={[styles.checkbox, aceitou && styles.checkboxAtivo]}>
             {aceitou && <Text style={styles.checkmark}>✓</Text>}
           </View>
@@ -39,8 +45,11 @@ export default function WelcomeScreen({ navigation }) {
         <TouchableOpacity
           style={[styles.btnContinuar, !aceitou && styles.btnDesativado]}
           onPress={continuar}
+          accessibilityRole="button"
+          accessibilityLabel="Continuar"
+          accessibilityHint="Aceite os termos para avançar"
         >
-          <Text style={styles.btnTexto}>continue</Text>
+          <Text style={styles.btnTexto}>Continuar</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -57,7 +66,7 @@ const styles = StyleSheet.create({
   },
   content: {
     width: '100%',
-    maxWidth: 380,  // ← largura máxima para telas grandes
+    maxWidth: 380, // limite para tablets e telas grandes
     alignItems: 'center',
   },
   titulo: {

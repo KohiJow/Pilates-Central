@@ -15,7 +15,7 @@ export default function TransicaoScreen({ navigation }) {
       navigation.replace('Welcome');
     }, 2800);
     return () => clearTimeout(timer);
-  }, []);
+  }, [navigation, opacidade, escala]);
 
   return (
     <View style={styles.container}>

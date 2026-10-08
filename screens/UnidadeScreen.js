@@ -26,14 +26,18 @@ export default function UnidadeScreen({ navigation }) {
 
       <FlatList
         data={UNIDADES}
+        accessibilityRole="radiogroup"
         keyExtractor={item => item.id}
         style={styles.lista}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={[styles.card, selecionada?.id === item.id && styles.cardAtivo]}
             onPress={() => setSelecionada(item)}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: selecionada?.id === item.id }}
+            accessibilityLabel={item.nome + ", " + item.endereco}
           >
-            <View style={styles.radioOuter}>
+            <View style={styles.radioOuter} importantForAccessibility="no">
               {selecionada?.id === item.id && <View style={styles.radioInner} />}
             </View>
             <View style={styles.cardConteudo}>
@@ -44,7 +48,12 @@ export default function UnidadeScreen({ navigation }) {
         )}
       />
 
-      <TouchableOpacity style={styles.btnConfirmar} onPress={confirmar}>
+      <TouchableOpacity
+        style={styles.btnConfirmar}
+        onPress={confirmar}
+        accessibilityRole="button"
+        accessibilityLabel="Confirmar unidade"
+      >
         <Text style={styles.btnTexto}>Confirmar</Text>
       </TouchableOpacity>
     </View>

@@ -15,6 +15,9 @@ export default function SplashScreen({ navigation }) {
         source={require('../assets/icon.png')}
         style={styles.logo}
         resizeMode="contain"
+        accessible
+        accessibilityRole="image"
+        accessibilityLabel="Logo Pilates Central"
       />
       <ActivityIndicator size="large" color="#4A3C0F" style={styles.loading} />
     </View>
@@ -24,7 +27,7 @@ export default function SplashScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FDFAF0',  // ← EXATO da logo
+    backgroundColor: "#FDFAF0", // mesmo fundo da logo, evita flash de cor
     justifyContent: 'center',
     alignItems: 'center',
   },
