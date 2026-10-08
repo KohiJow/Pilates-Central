@@ -1,11 +1,14 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet } from 'react-native';
+import { Animated, Platform, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import Tela from '../components/Tela';
 import useNavegacaoAutomatica from '../hooks/useNavegacaoAutomatica';
 import { cores } from '../theme';
 
 export const DURACAO_TRANSICAO_MS = 2800;
+
+// no navegador nao existe o modulo nativo de animacao e o RN avisa no console
+const usarDriverNativo = Platform.OS !== 'web';
 
 export default function TransicaoScreen({ navigation }) {
   const opacidade = useRef(new Animated.Value(0)).current;
@@ -15,8 +18,8 @@ export default function TransicaoScreen({ navigation }) {
 
   useEffect(() => {
     const animacao = Animated.parallel([
-      Animated.timing(opacidade, { toValue: 1, duration: 1200, useNativeDriver: true }),
-      Animated.spring(escala, { toValue: 1, friction: 5, useNativeDriver: true }),
+      Animated.timing(opacidade, { toValue: 1, duration: 1200, useNativeDriver: usarDriverNativo }),
+      Animated.spring(escala, { toValue: 1, friction: 5, useNativeDriver: usarDriverNativo }),
     ]);
     animacao.start();
     return () => animacao.stop();
