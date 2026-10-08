@@ -22,7 +22,7 @@ const temaNavegacao = {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar style="dark" backgroundColor={cores.fundo} />
+      <StatusBar style="dark" />
       <NavigationContainer theme={temaNavegacao}>
         <Stack.Navigator screenOptions={{ headerShown: false, animation: 'fade' }}>
           <Stack.Screen name="Splash" component={SplashScreen} />
