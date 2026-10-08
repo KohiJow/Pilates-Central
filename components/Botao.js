@@ -28,6 +28,7 @@ export default function Botao({
         styles.base,
         primario ? styles.primario : styles.texto,
         primario && desativado && styles.primarioDesativado,
+        !primario && inativo && styles.textoDesativado,
         pressed && !inativo && styles.pressionado,
         style,
       ]}
@@ -86,6 +87,9 @@ const styles = StyleSheet.create({
   texto: {
     alignSelf: 'center',
     backgroundColor: 'transparent',
+  },
+  textoDesativado: {
+    opacity: 0.5,
   },
   pressionado: {
     opacity: 0.75,

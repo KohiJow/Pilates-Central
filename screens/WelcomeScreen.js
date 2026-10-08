@@ -55,7 +55,7 @@ export default function WelcomeScreen({ navigation }) {
       />
 
       <Text style={styles.dica} accessibilityLiveRegion="polite">
-        {aceitou ? ' ' : 'Marque a caixa acima para continuar.'}
+        {aceitou ? '' : 'Marque a caixa acima para continuar.'}
       </Text>
 
       <Botao
@@ -97,6 +97,8 @@ const styles = StyleSheet.create({
   },
   dica: {
     ...tipografia.legenda,
+    // altura fixa para o botao nao pular quando a dica some
+    minHeight: tipografia.legenda.lineHeight,
     width: '100%',
     marginTop: espacamento.xs,
     marginBottom: espacamento.lg,
