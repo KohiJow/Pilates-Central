@@ -2,7 +2,14 @@ import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import UnidadeScreen from '../screens/UnidadeScreen';
-import { UNIDADES } from '../services/unidades';
+import { UNIDADES, listarUnidades } from '../services/unidades';
+import { MENSAGEM_ERRO_UNIDADES } from '../hooks/useUnidades';
+
+// mantem a implementacao real (lista fixa com atraso) e deixa trocar por uma falha
+jest.mock('../services/unidades', () => {
+  const real = jest.requireActual('../services/unidades');
+  return { ...real, listarUnidades: jest.fn(real.listarUnidades) };
+});
 
 const navigation = { navigate: jest.fn() };
 
@@ -52,6 +59,22 @@ describe('UnidadeScreen', () => {
 
     expect(navigation.navigate).toHaveBeenCalledWith('Login', { unidade: UNIDADES[1] });
     expect(await AsyncStorage.getItem('@pilates-central/unidade')).toBe(UNIDADES[1].id);
+  });
+
+  it('mostra o erro com tentar novamente e recupera na segunda tentativa', async () => {
+    listarUnidades.mockRejectedValueOnce(new Error('sem rede'));
+    render(<UnidadeScreen navigation={navigation} />);
+    await esperarLista();
+
+    expect(screen.getByText(MENSAGEM_ERRO_UNIDADES)).toBeTruthy();
+    expect(screen.queryAllByRole('radio')).toHaveLength(0);
+    expect(screen.getByRole('button', { name: 'Confirmar unidade' })).toBeDisabled();
+
+    fireEvent.press(screen.getByRole('button', { name: 'Tentar novamente' }));
+    await esperarLista();
+
+    expect(screen.queryByText(MENSAGEM_ERRO_UNIDADES)).toBeNull();
+    expect(screen.getAllByRole('radio')).toHaveLength(UNIDADES.length);
   });
 
   it('pre-seleciona a unidade salva da ultima vez', async () => {
