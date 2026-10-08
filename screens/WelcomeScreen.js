@@ -1,24 +1,25 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import Tela from '../components/Tela';
 import Cabecalho from '../components/Cabecalho';
 import Checkbox from '../components/Checkbox';
 import Botao from '../components/Botao';
 import { mostrarAlerta } from '../utils/alerta';
-import { cores, espacamento, raio, tipografia } from '../theme';
+import { alvoToque, cores, espacamento, raio, tipografia } from '../theme';
 
 const AVISO_DOCUMENTO = 'O texto completo ainda não está disponível no app.';
 
+// Link em linha propria, e nao dentro do paragrafo, para ter area de toque de 48.
 function LinkDocumento({ titulo }) {
   return (
-    <Text
-      style={styles.link}
-      accessibilityRole="link"
+    <Pressable
       onPress={() => mostrarAlerta(titulo, AVISO_DOCUMENTO)}
+      style={({ pressed }) => [styles.linkLinha, pressed && styles.linkPressionado]}
+      accessibilityRole="link"
     >
-      {titulo}
-    </Text>
+      <Text style={styles.link}>{titulo}</Text>
+    </Pressable>
   );
 }
 
@@ -39,10 +40,11 @@ export default function WelcomeScreen({ navigation }) {
 
       <View style={styles.termos}>
         <Text style={styles.termosTexto}>
-          Ao utilizar este aplicativo, você concorda com nossa{' '}
-          <LinkDocumento titulo="Política de Privacidade" /> e{' '}
-          <LinkDocumento titulo="Termos de Uso" />.
+          Ao utilizar este aplicativo, você concorda com nossa Política de Privacidade e
+          Termos de Uso.
         </Text>
+        <LinkDocumento titulo="Política de Privacidade" />
+        <LinkDocumento titulo="Termos de Uso" />
         <Text style={styles.termosRodape}>
           Seus dados são utilizados exclusivamente para gerenciamento das suas aulas e planos.
         </Text>
@@ -89,8 +91,18 @@ const styles = StyleSheet.create({
   termosRodape: {
     ...tipografia.legenda,
     fontStyle: 'italic',
+    marginTop: espacamento.sm,
+  },
+  linkLinha: {
+    minHeight: alvoToque,
+    justifyContent: 'center',
+    alignSelf: 'flex-start',
+  },
+  linkPressionado: {
+    opacity: 0.6,
   },
   link: {
+    ...tipografia.corpo,
     color: cores.primaria,
     fontWeight: '700',
     textDecorationLine: 'underline',

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Alert } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import WelcomeScreen from '../screens/WelcomeScreen';
 
@@ -25,6 +26,18 @@ describe('WelcomeScreen', () => {
 
     fireEvent.press(continuar);
     expect(navigation.navigate).toHaveBeenCalledWith('Unidade');
+  });
+
+  it('os links dos documentos avisam que o texto ainda nao existe', () => {
+    jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    render(<WelcomeScreen navigation={navigation} />);
+
+    const links = screen.getAllByRole('link');
+    expect(links).toHaveLength(2);
+
+    fireEvent.press(screen.getByRole('link', { name: 'Termos de Uso' }));
+    expect(Alert.alert).toHaveBeenCalledWith('Termos de Uso', expect.any(String));
+    jest.restoreAllMocks();
   });
 
   it('desmarcar o checkbox trava o botao de novo', () => {
