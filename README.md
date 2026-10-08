@@ -52,10 +52,10 @@ Sao pontos abertos de proposito, nao bugs:
   `setTimeout` e mostra um alerta de sucesso. Nao ha usuario, senha ou token em nenhum
   lugar do codigo, e nao ha chamada a servidor.
 - **Telas pos login.** O stack termina no Login. Nao existe home, agenda nem perfil.
-- **Persistencia.** `@react-native-async-storage/async-storage` e
-  `@react-navigation/bottom-tabs` estao no `package.json` mas ainda nao sao importados
-  por nenhum arquivo. A unidade escolhida e o e-mail digitado ficam so no state da tela
-  e somem ao fechar o app.
+- **Persistencia.** `@react-native-async-storage/async-storage`,
+  `@react-navigation/bottom-tabs` e `expo-status-bar` estao no `package.json` mas
+  nenhum arquivo do projeto importa. A unidade escolhida e o e-mail digitado ficam
+  so no state da tela e somem ao fechar o app.
 - **Unidades vindas de API.** A lista de tres unidades e fixa no codigo.
 
 ## Rodando
