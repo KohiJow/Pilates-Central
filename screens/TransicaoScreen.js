@@ -1,45 +1,48 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Animated, StyleSheet } from 'react-native';
+import { Animated, StyleSheet } from 'react-native';
+import PropTypes from 'prop-types';
+import Tela from '../components/Tela';
+import useNavegacaoAutomatica from '../hooks/useNavegacaoAutomatica';
+import { cores } from '../theme';
+
+export const DURACAO_TRANSICAO_MS = 2800;
 
 export default function TransicaoScreen({ navigation }) {
   const opacidade = useRef(new Animated.Value(0)).current;
-  const escala    = useRef(new Animated.Value(0.8)).current;
+  const escala = useRef(new Animated.Value(0.8)).current;
+
+  useNavegacaoAutomatica(navigation, 'Welcome', DURACAO_TRANSICAO_MS);
 
   useEffect(() => {
-    Animated.parallel([
+    const animacao = Animated.parallel([
       Animated.timing(opacidade, { toValue: 1, duration: 1200, useNativeDriver: true }),
       Animated.spring(escala, { toValue: 1, friction: 5, useNativeDriver: true }),
-    ]).start();
-
-    const timer = setTimeout(() => {
-      navigation.replace('Welcome');
-    }, 2800);
-    return () => clearTimeout(timer);
-  }, [navigation, opacidade, escala]);
+    ]);
+    animacao.start();
+    return () => animacao.stop();
+  }, [opacidade, escala]);
 
   return (
-    <View style={styles.container}>
-      <Animated.Text style={[styles.texto, { 
-        opacity: opacidade, 
-        transform: [{ scale: escala }] 
-      }]}>
+    <Tela centralizada>
+      <Animated.Text
+        style={[styles.texto, { opacity: opacidade, transform: [{ scale: escala }] }]}
+        accessibilityLabel="central"
+      >
         c e n t r a l
       </Animated.Text>
-    </View>
+    </Tela>
   );
 }
 
+TransicaoScreen.propTypes = {
+  navigation: PropTypes.shape({ replace: PropTypes.func.isRequired }).isRequired,
+};
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FDFAF0',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   texto: {
     fontSize: 28,
     letterSpacing: 12,
-    color: '#5C4A1E', 
+    color: cores.primaria,
     fontWeight: '300',
   },
 });

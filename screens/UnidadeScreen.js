@@ -1,81 +1,104 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
-
-const UNIDADES = [
-  { id: '1', nome: 'Pilates Central - Unidade Centro', endereco: 'Rua das Flores, 123' },
-  { id: '2', nome: 'Pilates Central - Unidade Cambui', endereco: 'Av. da Paz, 456' },
-  { id: '3', nome: 'Pilates Central - Unidade Taquaral', endereco: 'R. das Acacias, 789' },
-];
+import React, { useEffect, useState } from 'react';
+import { FlatList, StyleSheet, Text } from 'react-native';
+import PropTypes from 'prop-types';
+import Tela from '../components/Tela';
+import Cabecalho from '../components/Cabecalho';
+import OpcaoRadio from '../components/OpcaoRadio';
+import Botao from '../components/Botao';
+import MensagemEstado from '../components/MensagemEstado';
+import useUnidades from '../hooks/useUnidades';
+import { lerUnidadeSalva, salvarUnidade } from '../services/preferencias';
+import { espacamento, tipografia } from '../theme';
 
 export default function UnidadeScreen({ navigation }) {
-  const [selecionada, setSelecionada] = useState(null);
+  const { unidades, carregando, erro, recarregar } = useUnidades();
+  const [selecionadaId, setSelecionadaId] = useState(null);
+
+  // pre-seleciona a ultima unidade escolhida, se ela ainda existir na lista
+  useEffect(() => {
+    let ativo = true;
+    if (unidades.length === 0) return undefined;
+    lerUnidadeSalva().then((idSalvo) => {
+      if (ativo && idSalvo && unidades.some((u) => u.id === idSalvo)) {
+        setSelecionadaId((atual) => atual ?? idSalvo);
+      }
+    });
+    return () => {
+      ativo = false;
+    };
+  }, [unidades]);
+
+  const selecionada = unidades.find((u) => u.id === selecionadaId) || null;
 
   const confirmar = () => {
-    if (!selecionada) {
-      Alert.alert('Atenção', 'Selecione uma unidade para continuar.');
-      return;
+    if (!selecionada) return;
+    salvarUnidade(selecionada.id);
+    navigation.navigate('Login', { unidade: selecionada });
+  };
+
+  const renderEstado = () => {
+    if (carregando) return <MensagemEstado carregando texto="Carregando unidades..." />;
+    if (erro) {
+      return (
+        <MensagemEstado
+          erro
+          texto={erro}
+          acao={{ titulo: 'Tentar novamente', onPress: recarregar }}
+        />
+      );
     }
-    Alert.alert('Confirmado', `"${selecionada.nome}" selecionada.`);
-    navigation.navigate('Login');
+    return <MensagemEstado texto="Nenhuma unidade disponível no momento." />;
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>Selecione sua unidade</Text>
-      <Text style={styles.subtitulo}>Escolha a unidade mais próxima de você</Text>
+    <Tela>
+      <Cabecalho titulo="Selecione sua unidade" subtitulo="Escolha a unidade mais próxima de você" />
 
       <FlatList
-        data={UNIDADES}
-        accessibilityRole="radiogroup"
-        keyExtractor={item => item.id}
+        data={unidades}
+        keyExtractor={(item) => item.id}
         style={styles.lista}
+        contentContainerStyle={styles.listaConteudo}
+        accessibilityRole="radiogroup"
+        ListEmptyComponent={renderEstado}
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[styles.card, selecionada?.id === item.id && styles.cardAtivo]}
-            onPress={() => setSelecionada(item)}
-            accessibilityRole="radio"
-            accessibilityState={{ selected: selecionada?.id === item.id }}
-            accessibilityLabel={item.nome + ", " + item.endereco}
-          >
-            <View style={styles.radioOuter} importantForAccessibility="no">
-              {selecionada?.id === item.id && <View style={styles.radioInner} />}
-            </View>
-            <View style={styles.cardConteudo}>
-              <Text style={styles.cardNome}>{item.nome}</Text>
-              <Text style={styles.cardEnd}>{item.endereco}</Text>
-            </View>
-          </TouchableOpacity>
+          <OpcaoRadio
+            titulo={item.nome}
+            subtitulo={item.endereco}
+            selecionado={item.id === selecionadaId}
+            onPress={() => setSelecionadaId(item.id)}
+          />
         )}
       />
 
-      <TouchableOpacity
-        style={styles.btnConfirmar}
+      <Text style={styles.dica} accessibilityLiveRegion="polite">
+        {selecionada ? `Selecionada: ${selecionada.nome}` : 'Toque em uma unidade para selecionar.'}
+      </Text>
+
+      <Botao
+        titulo="Confirmar"
         onPress={confirmar}
-        accessibilityRole="button"
+        desativado={!selecionada}
         accessibilityLabel="Confirmar unidade"
-      >
-        <Text style={styles.btnTexto}>Confirmar</Text>
-      </TouchableOpacity>
-    </View>
+        accessibilityHint="Vai para a tela de login"
+      />
+    </Tela>
   );
 }
 
+UnidadeScreen.propTypes = {
+  navigation: PropTypes.shape({ navigate: PropTypes.func.isRequired }).isRequired,
+};
+
 const styles = StyleSheet.create({
-  container:   { flex: 1, backgroundColor: '#FDFAF0', padding: 25, paddingTop: 60 },
-  titulo:      { fontSize: 24, fontWeight: 'bold', color: '#D4A574', marginBottom: 6 },
-  subtitulo:   { fontSize: 15, color: '#8B7351', marginBottom: 30, fontWeight: '500' },
-  lista:       { width: '100%', marginBottom: 25 },
-  card:        { backgroundColor: '#F7F2E6', borderRadius: 12, padding: 20, marginBottom: 12,
-                 flexDirection: 'row', alignItems: 'center', borderWidth: 2,
-                 borderColor: '#e8dcc8' },
-  cardAtivo:   { borderColor: '#D4A574', backgroundColor: '#FDFAF0' },
-  radioOuter:  { width: 24, height: 24, borderRadius: 12, borderWidth: 2,
-                 borderColor: '#D4A574', marginRight: 18, justifyContent: 'center', alignItems: 'center' },
-  radioInner:  { width: 14, height: 14, borderRadius: 7, backgroundColor: '#D4A574' },
-  cardConteudo:{ flex: 1 },
-  cardNome:    { fontSize: 16, fontWeight: 'bold', color: '#8B7351', marginBottom: 4 },
-  cardEnd:     { fontSize: 14, color: '#5C4A1E' },
-  btnConfirmar:{ backgroundColor: '#D4A574', padding: 18, borderRadius: 30,
-                 alignItems: 'center', elevation: 4 },
-  btnTexto:    { color: '#FDFAF0', fontSize: 16, fontWeight: '700' },
+  lista: {
+    flex: 1,
+  },
+  listaConteudo: {
+    paddingBottom: espacamento.sm,
+  },
+  dica: {
+    ...tipografia.legenda,
+    marginBottom: espacamento.sm + espacamento.xs,
+  },
 });

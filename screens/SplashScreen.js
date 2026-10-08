@@ -1,16 +1,17 @@
-import React, { useEffect } from 'react';
-import { View, Image, ActivityIndicator, StyleSheet } from 'react-native';
+import React from 'react';
+import { ActivityIndicator, Image, StyleSheet } from 'react-native';
+import PropTypes from 'prop-types';
+import Tela from '../components/Tela';
+import useNavegacaoAutomatica from '../hooks/useNavegacaoAutomatica';
+import { cores, espacamento } from '../theme';
+
+export const DURACAO_SPLASH_MS = 2500;
 
 export default function SplashScreen({ navigation }) {
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.replace('Transicao');
-    }, 2500);
-    return () => clearTimeout(timer);
-  }, [navigation]);
+  useNavegacaoAutomatica(navigation, 'Transicao', DURACAO_SPLASH_MS);
 
   return (
-    <View style={styles.container}>
+    <Tela centralizada>
       <Image
         source={require('../assets/icon.png')}
         style={styles.logo}
@@ -19,24 +20,27 @@ export default function SplashScreen({ navigation }) {
         accessibilityRole="image"
         accessibilityLabel="Logo Pilates Central"
       />
-      <ActivityIndicator size="large" color="#4A3C0F" style={styles.loading} />
-    </View>
+      <ActivityIndicator
+        size="large"
+        color={cores.primaria}
+        style={styles.carregando}
+        accessibilityLabel="Carregando"
+      />
+    </Tela>
   );
 }
 
+SplashScreen.propTypes = {
+  navigation: PropTypes.shape({ replace: PropTypes.func.isRequired }).isRequired,
+};
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FDFAF0", // mesmo fundo da logo, evita flash de cor
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   logo: {
     width: 200,
     height: 200,
     borderRadius: 100,
   },
-  loading: {
-    marginTop: 45,
+  carregando: {
+    marginTop: espacamento.xxl,
   },
 });

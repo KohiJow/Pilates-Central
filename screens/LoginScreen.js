@@ -1,150 +1,174 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  View, Text, TextInput, TouchableOpacity,
-  StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text } from 'react-native';
+import PropTypes from 'prop-types';
+import Tela from '../components/Tela';
+import Cabecalho from '../components/Cabecalho';
+import CampoTexto from '../components/CampoTexto';
+import Botao from '../components/Botao';
+import useMontado from '../hooks/useMontado';
+import { fazerLogin } from '../services/auth';
+import { lerEmailSalvo, salvarEmail } from '../services/preferencias';
+import { validarLogin } from '../utils/validacao';
+import { mostrarAlerta } from '../utils/alerta';
+import { cores, espacamento, tipografia } from '../theme';
 
-export default function LoginScreen() {
+const SEM_ERROS = { email: '', senha: '' };
+export const MENSAGEM_ERRO_LOGIN = 'Não foi possível entrar. Tente novamente.';
+
+export default function LoginScreen({ route }) {
+  const unidade = route?.params?.unidade;
+  const montado = useMontado();
+  const campoSenha = useRef(null);
+
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [senhaVis, setSenhaVis] = useState(false);
-  const [erroEmail, setErroEmail] = useState('');
-  const [erroSenha, setErroSenha] = useState('');
+  const [erros, setErros] = useState(SEM_ERROS);
+  const [erroGeral, setErroGeral] = useState('');
+  const [carregando, setCarregando] = useState(false);
 
-  const timerRef = useRef(null);
+  // preenche o e-mail do ultimo login, sem sobrescrever o que o usuario ja digitou
+  useEffect(() => {
+    lerEmailSalvo().then((salvo) => {
+      if (montado.current && salvo) setEmail((atual) => atual || salvo);
+    });
+  }, [montado]);
 
-  // sem isso, sair da tela durante o loading deixa o setState rodando no vazio
-  useEffect(() => () => clearTimeout(timerRef.current), []);
+  const entrar = async () => {
+    if (carregando) return;
+    const { erros: novosErros, valido } = validarLogin({ email, senha });
+    setErros(novosErros);
+    setErroGeral('');
+    if (!valido) return;
 
-  const validar = () => {
-    let valido = true;
-    setErroEmail('');
-    setErroSenha('');
-
-    if (!email.trim()) {
-      setErroEmail('Informe seu e-mail.');
-      valido = false;
-    } else if (!email.includes('@')) {
-      setErroEmail('E-mail inválido.');
-      valido = false;
+    setCarregando(true);
+    try {
+      const sessao = await fazerLogin({ email, senha });
+      await salvarEmail(sessao.email);
+      if (!montado.current) return;
+      mostrarAlerta('Login realizado', `Bem-vindo, ${sessao.email}!`);
+    } catch (e) {
+      if (montado.current) setErroGeral(MENSAGEM_ERRO_LOGIN);
+    } finally {
+      if (montado.current) setCarregando(false);
     }
-
-    if (!senha) {
-      setErroSenha('Informe sua senha.');
-      valido = false;
-    } else if (senha.length < 6) {
-      setErroSenha('Senha deve ter ao menos 6 caracteres.');
-      valido = false;
-    }
-
-    return valido;
-  };
-
-  // autenticação ainda não existe: o backend não foi definido.
-  // o timeout só simula a espera da rede para exercitar o estado de loading.
-  const entrar = () => {
-    if (loading || !validar()) return;
-    setLoading(true);
-    timerRef.current = setTimeout(() => {
-      setLoading(false);
-      Alert.alert('Login realizado', `Bem-vindo, ${email.trim()}!`);
-    }, 1500);
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <Text style={styles.titulo}>Pilates Central</Text>
-      <Text style={styles.subtitulo}>Acesse sua conta</Text>
+    <Tela>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.conteudo}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Cabecalho titulo="Pilates Central" subtitulo="Acesse sua conta" centralizado />
 
-      <View style={styles.inputWrapper}>
-        <Text style={styles.label}>E-mail</Text>
-        <TextInput
-          style={[styles.input, erroEmail ? styles.inputErro : null]}
-          placeholder="seu@email.com"
-          placeholderTextColor="#8B7351"
-          value={email}
-          onChangeText={text => { setEmail(text); setErroEmail(''); }}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          autoComplete="email"
-          editable={!loading}
-          accessibilityLabel="E-mail"
-        />
-        {erroEmail ? <Text style={styles.erroTexto}>{erroEmail}</Text> : null}
-      </View>
+          {unidade ? (
+            <Text style={styles.unidade} accessibilityLabel={`Unidade escolhida: ${unidade.nome}`}>
+              {unidade.nome}
+            </Text>
+          ) : null}
 
-      <View style={styles.inputWrapper}>
-        <Text style={styles.label}>Senha</Text>
-        <View style={[styles.senhaRow, erroSenha ? styles.inputErro : null]}>
-          <TextInput
-            style={styles.inputSenha}
-            placeholder="••••••••"
-            placeholderTextColor="#8B7351"
-            value={senha}
-            onChangeText={text => { setSenha(text); setErroSenha(''); }}
-            secureTextEntry={!senhaVis}
-            autoCapitalize="none"
-            autoComplete="password"
-            editable={!loading}
-            accessibilityLabel="Senha"
+          <CampoTexto
+            rotulo="E-mail"
+            tipo="email"
+            valor={email}
+            onChangeText={(texto) => {
+              setEmail(texto);
+              setErros((e) => ({ ...e, email: '' }));
+            }}
+            erro={erros.email}
+            placeholder="nome@exemplo.com"
+            editavel={!carregando}
+            returnKeyType="next"
+            onSubmitEditing={() => campoSenha.current?.focus()}
           />
-          <TouchableOpacity
-            onPress={() => setSenhaVis(v => !v)}
-            accessibilityRole="button"
-            accessibilityLabel={senhaVis ? 'Ocultar senha' : 'Mostrar senha'}
-          >
-            <Text style={styles.olho}>{senhaVis ? 'Ocultar' : 'Mostrar'}</Text>
-          </TouchableOpacity>
-        </View>
-        {erroSenha ? <Text style={styles.erroTexto}>{erroSenha}</Text> : null}
-      </View>
 
-      <TouchableOpacity
-        style={styles.btn}
-        onPress={entrar}
-        disabled={loading}
-        accessibilityRole="button"
-        accessibilityLabel="Entrar"
-        accessibilityState={{ disabled: loading, busy: loading }}
-      >
-        {loading
-          ? <ActivityIndicator color="#FDF7E9" />
-          : <Text style={styles.btnTexto}>Entrar</Text>
-        }
-      </TouchableOpacity>
+          <CampoTexto
+            ref={campoSenha}
+            rotulo="Senha"
+            tipo="senha"
+            valor={senha}
+            onChangeText={(texto) => {
+              setSenha(texto);
+              setErros((e) => ({ ...e, senha: '' }));
+            }}
+            erro={erros.senha}
+            placeholder="Mínimo de 6 caracteres"
+            editavel={!carregando}
+            returnKeyType="done"
+            onSubmitEditing={entrar}
+          />
 
-      <TouchableOpacity
-        onPress={() => Alert.alert('Esqueci minha senha', 'Recuperação de senha ainda não disponível.')}
-        accessibilityRole="button"
-      >
-        <Text style={styles.esqueci}>Esqueci minha senha</Text>
-      </TouchableOpacity>
-    </KeyboardAvoidingView>
+          {erroGeral ? (
+            <Text style={styles.erroGeral} accessibilityLiveRegion="assertive">
+              {erroGeral}
+            </Text>
+          ) : null}
+
+          <Botao
+            titulo="Entrar"
+            onPress={entrar}
+            carregando={carregando}
+            accessibilityHint="Valida os campos e entra na sua conta"
+            style={styles.entrar}
+          />
+
+          <Botao
+            variante="texto"
+            titulo="Esqueci minha senha"
+            onPress={() =>
+              mostrarAlerta('Esqueci minha senha', 'Recuperação de senha ainda não disponível.')
+            }
+            desativado={carregando}
+            style={styles.esqueci}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </Tela>
   );
 }
 
+LoginScreen.propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      unidade: PropTypes.shape({
+        id: PropTypes.string.isRequired,
+        nome: PropTypes.string.isRequired,
+      }),
+    }),
+  }),
+};
+
 const styles = StyleSheet.create({
-  container:    { flex: 1, backgroundColor: '#FDF7E9', padding: 30, justifyContent: 'center' },
-  titulo:       { fontSize: 30, fontWeight: 'bold', color: '#4A3C0F', marginBottom: 4, textAlign: 'center' },
-  subtitulo:    { fontSize: 15, color: '#4A3C0F', marginBottom: 35, textAlign: 'center',
-                  lineHeight: 22, fontWeight: '700' },
-  inputWrapper: { marginBottom: 20 },
-  label:        { fontSize: 13, color: '#4A3C0F', marginBottom: 6, fontWeight: '600' },
-  input:        { backgroundColor: '#F7F2E6', borderWidth: 1.5, borderColor: '#e8dcc8',
-                  borderRadius: 12, padding: 16, fontSize: 15, color: '#4A3C0F' },
-  inputErro:    { borderColor: '#e74c3c' },
-  erroTexto:    { color: '#e74c3c', fontSize: 12, marginTop: 4 },
-  senhaRow:     { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F7F2E6',
-                  borderWidth: 1.5, borderColor: '#e8dcc8', borderRadius: 12, paddingHorizontal: 16 },
-  inputSenha:   { flex: 1, padding: 16, fontSize: 15, color: '#4A3C0F' },
-  olho:         { fontSize: 13, color: '#4A3C0F', fontWeight: '500', padding: 5 },
-  btn:          { backgroundColor: '#4A3C0F', padding: 18, borderRadius: 30,
-                  alignItems: 'center', marginTop: 15, elevation: 4 },
-  btnTexto:     { color: '#FDF7E9', fontSize: 16, fontWeight: 'bold' },
-  esqueci:      { textAlign: 'center', color: '#5C4A1E', marginTop: 25, fontSize: 14, fontWeight: '700' },
+  flex: {
+    flex: 1,
+  },
+  conteudo: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingVertical: espacamento.md,
+  },
+  unidade: {
+    ...tipografia.rotulo,
+    color: cores.primaria,
+    textAlign: 'center',
+    marginTop: -espacamento.sm,
+    marginBottom: espacamento.lg,
+  },
+  erroGeral: {
+    ...tipografia.legenda,
+    color: cores.erro,
+    textAlign: 'center',
+    marginBottom: espacamento.md,
+  },
+  entrar: {
+    marginTop: espacamento.sm,
+  },
+  esqueci: {
+    marginTop: espacamento.md,
+  },
 });
