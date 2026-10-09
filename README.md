@@ -52,7 +52,8 @@ Texto de boas-vindas, resumo dos termos e um checkbox. O botao Continuar fica
 desativado (visual e `accessibilityState`) ate o aceite, com uma dica em texto
 explicando o motivo. Os links de Politica de Privacidade e Termos de Uso ficam em
 linhas proprias, com area de toque de 48, e abrem um aviso de que o texto completo
-ainda nao esta no app. Com o aceite, navega para Unidade.
+ainda nao esta no app. O conteudo fica num `ScrollView`, entao em telas baixas ou com
+fonte ampliada o botao continua alcancavel. Com o aceite, navega para Unidade.
 
 **4. Unidade** (`screens/UnidadeScreen.js`)
 `FlatList` com as unidades vindas de `services/unidades.js` pelo hook `useUnidades`,
@@ -135,24 +136,27 @@ assets/                       icone, icone adaptativo, splash e favicon gerados 
 npm test
 ```
 
-Sete suites em `__tests__/`, com `jest-expo` e `@testing-library/react-native`:
+Nove suites em `__tests__/`, com `jest-expo` e `@testing-library/react-native`:
 
 - `validacao.test.js`: regras de e-mail e senha e a combinacao dos dois.
 - `tema.test.js`: contraste de cada par texto/fundo do tema, alvo de toque e tipografia.
 - `Botao.test.js`: toque, estado desativado e estado de carregamento.
+- `SplashScreen.test.js` e `TransicaoScreen.test.js`: troca de tela so depois do tempo
+  certo e nenhuma navegacao se a tela for fechada antes (cleanup do timer).
 - `WelcomeScreen.test.js`: Continuar travado ate o aceite, dica que some ao marcar,
   links dos documentos e navegacao.
 - `UnidadeScreen.test.js`: carregamento, lista, erro com "Tentar novamente", confirmar
   so apos escolher, parametro enviado ao Login e unidade lembrada entre aberturas.
 - `LoginScreen.test.js`: erros de validacao, limpeza do erro ao digitar, login simulado
-  com spinner e e-mail salvo.
+  com spinner e e-mail salvo, mensagem geral quando o login falha e ultimo e-mail
+  preenchido.
 - `preferencias.test.js`: grava e le as preferencias e nao lanca quando o AsyncStorage
   falha.
 
 O AsyncStorage usa o mock em memoria do proprio pacote (`jest.setup.js`). A versao web
-(`npx expo export --platform web`) foi conferida em 360, 390 e 430 de largura: sem
-rolagem horizontal, botoes, checkbox, radios e links com pelo menos 48 de altura e
-nenhum aviso no console.
+(`npx expo export --platform web`) foi conferida em 360, 390 e 430 de largura, em
+360x640 e em paisagem 740x360: sem rolagem horizontal, botoes, checkbox, radios e links
+com pelo menos 48 de altura e nenhum aviso no console.
 
 ## O que ainda nao existe
 
