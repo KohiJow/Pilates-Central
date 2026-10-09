@@ -2,7 +2,14 @@ import React from 'react';
 import { Alert } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import LoginScreen from '../screens/LoginScreen';
+import LoginScreen, { MENSAGEM_ERRO_LOGIN } from '../screens/LoginScreen';
+import { fazerLogin } from '../services/auth';
+
+// mantem o login simulado real e deixa trocar por uma falha
+jest.mock('../services/auth', () => {
+  const real = jest.requireActual('../services/auth');
+  return { ...real, fazerLogin: jest.fn(real.fazerLogin) };
+});
 
 describe('LoginScreen', () => {
   beforeEach(() => {
@@ -49,5 +56,30 @@ describe('LoginScreen', () => {
     expect(Alert.alert).toHaveBeenCalledWith('Login realizado', 'Bem-vindo, nome@exemplo.com!');
     expect(screen.queryByLabelText('Carregando')).toBeNull();
     expect(await AsyncStorage.getItem('@pilates-central/email')).toBe('nome@exemplo.com');
+  });
+
+  it('mostra o erro geral quando o login falha e libera o botao de novo', async () => {
+    fazerLogin.mockRejectedValueOnce(new Error('sem rede'));
+    render(<LoginScreen />);
+
+    fireEvent.changeText(screen.getByLabelText('E-mail'), 'nome@exemplo.com');
+    fireEvent.changeText(screen.getByLabelText('Senha'), '123456');
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Entrar' }));
+    });
+
+    expect(screen.getByText(MENSAGEM_ERRO_LOGIN)).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Entrar' })).not.toBeDisabled();
+    expect(Alert.alert).not.toHaveBeenCalled();
+    expect(await AsyncStorage.getItem('@pilates-central/email')).toBeNull();
+  });
+
+  it('preenche o ultimo e-mail usado', async () => {
+    await AsyncStorage.setItem('@pilates-central/email', 'nome@exemplo.com');
+    render(<LoginScreen />);
+
+    await act(async () => {});
+
+    expect(screen.getByLabelText('E-mail')).toHaveDisplayValue('nome@exemplo.com');
   });
 });

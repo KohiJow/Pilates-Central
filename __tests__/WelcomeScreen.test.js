@@ -8,6 +8,11 @@ const navigation = { navigate: jest.fn() };
 describe('WelcomeScreen', () => {
   beforeEach(() => {
     navigation.navigate.mockClear();
+    jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('so libera o continuar depois de aceitar os termos', () => {
@@ -29,7 +34,6 @@ describe('WelcomeScreen', () => {
   });
 
   it('os links dos documentos avisam que o texto ainda nao existe', () => {
-    jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     render(<WelcomeScreen navigation={navigation} />);
 
     const links = screen.getAllByRole('link');
@@ -37,7 +41,6 @@ describe('WelcomeScreen', () => {
 
     fireEvent.press(screen.getByRole('link', { name: 'Termos de Uso' }));
     expect(Alert.alert).toHaveBeenCalledWith('Termos de Uso', expect.any(String));
-    jest.restoreAllMocks();
   });
 
   it('desmarcar o checkbox trava o botao de novo', () => {
