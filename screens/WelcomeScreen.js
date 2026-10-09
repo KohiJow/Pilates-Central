@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import Tela from '../components/Tela';
 import Cabecalho from '../components/Cabecalho';
@@ -31,41 +31,44 @@ export default function WelcomeScreen({ navigation }) {
   const [aceitou, setAceitou] = useState(false);
 
   return (
-    <Tela centralizada>
-      <Cabecalho
-        titulo="Pilates Central"
-        subtitulo="Bem-vindo ao seu espaço de bem-estar"
-        centralizado
-      />
+    <Tela>
+      {/* rola em telas baixas ou com fonte ampliada, para o botao nunca ficar fora da tela */}
+      <ScrollView contentContainerStyle={styles.conteudo} showsVerticalScrollIndicator={false}>
+        <Cabecalho
+          titulo="Pilates Central"
+          subtitulo="Bem-vindo ao seu espaço de bem-estar"
+          centralizado
+        />
 
-      <View style={styles.termos}>
-        <Text style={styles.termosTexto}>
-          Ao utilizar este aplicativo, você concorda com nossa Política de Privacidade e
-          Termos de Uso.
+        <View style={styles.termos}>
+          <Text style={styles.termosTexto}>
+            Ao utilizar este aplicativo, você concorda com nossa Política de Privacidade e
+            Termos de Uso.
+          </Text>
+          <LinkDocumento titulo="Política de Privacidade" />
+          <LinkDocumento titulo="Termos de Uso" />
+          <Text style={styles.termosRodape}>
+            Seus dados são utilizados exclusivamente para gerenciamento das suas aulas e planos.
+          </Text>
+        </View>
+
+        <Checkbox
+          marcado={aceitou}
+          onToggle={() => setAceitou((v) => !v)}
+          rotulo="Li e aceito os termos de uso"
+        />
+
+        <Text style={styles.dica} accessibilityLiveRegion="polite">
+          {aceitou ? '' : 'Marque a caixa acima para continuar.'}
         </Text>
-        <LinkDocumento titulo="Política de Privacidade" />
-        <LinkDocumento titulo="Termos de Uso" />
-        <Text style={styles.termosRodape}>
-          Seus dados são utilizados exclusivamente para gerenciamento das suas aulas e planos.
-        </Text>
-      </View>
 
-      <Checkbox
-        marcado={aceitou}
-        onToggle={() => setAceitou((v) => !v)}
-        rotulo="Li e aceito os termos de uso"
-      />
-
-      <Text style={styles.dica} accessibilityLiveRegion="polite">
-        {aceitou ? '' : 'Marque a caixa acima para continuar.'}
-      </Text>
-
-      <Botao
-        titulo="Continuar"
-        onPress={() => navigation.navigate('Unidade')}
-        desativado={!aceitou}
-        accessibilityHint="Vai para a escolha da unidade"
-      />
+        <Botao
+          titulo="Continuar"
+          onPress={() => navigation.navigate('Unidade')}
+          desativado={!aceitou}
+          accessibilityHint="Vai para a escolha da unidade"
+        />
+      </ScrollView>
     </Tela>
   );
 }
@@ -75,6 +78,10 @@ WelcomeScreen.propTypes = {
 };
 
 const styles = StyleSheet.create({
+  conteudo: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
   termos: {
     width: '100%',
     backgroundColor: cores.superficie,
