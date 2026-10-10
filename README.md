@@ -1,5 +1,10 @@
 # Pilates Central
 
+> **Aviso:** este repositorio e o prototipo inicial, em Expo, e nao recebe mais mudancas. O app do
+> estudio passou a ser o web app em https://github.com/KohiJow/pilates-central-web (que vai virar
+> `pilates-central/pilates-central.github.io`, publicado em https://pilates-central.github.io/).
+> O que segue fica como registro do que foi feito aqui.
+
 App mobile de um estudio de pilates, em React Native com Expo. O que existe hoje e o
 fluxo de entrada do aluno: abertura, aceite de termos, escolha de unidade e tela de login.
 
